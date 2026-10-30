@@ -34,13 +34,13 @@ code .
 
 ## 🏃 Running the Application
 
-### 1. Start the Backend API (Port 5000)
+### 1. Start the Backend API (Port 5001)
 Open a terminal in VS Code (`Ctrl + ~` or ``Cmd + Shift + ` ``):
 ```bash
 cd backend
 npm install
 npm run seed      # Populates realistic demo records, users, and courses
-npm start         # Starts server on http://localhost:5000
+npm start         # Starts server on http://localhost:5001
 ```
 
 ### 2. Start the Frontend Client (Port 3000)

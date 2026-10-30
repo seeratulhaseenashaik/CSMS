@@ -7,14 +7,23 @@ export default {
   theme: {
     extend: {
       colors: {
+        csms: {
+          deep: '#290044',    // 290044 - Midnight Plum / Deep Violet
+          royal: '#500071',   // 500071 - Royal Imperial Purple
+          magenta: '#8A2A78', // 8A2A78 - Magenta Orchid / Rose
+          cream: '#EEE3B0',   // EEE3B0 - Warm Champagne Gold / Cream
+        },
         brand: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          500: '#2563eb',
-          600: '#1d4ed8',
-          700: '#1e40af',
-          800: '#1e3a8a',
-          900: '#172554',
+          50: '#fbf9f2',
+          100: '#EEE3B0',
+          200: '#e2d398',
+          300: '#cbaf6a',
+          400: '#a84c8a',
+          500: '#8A2A78',
+          600: '#500071',
+          700: '#3d0056',
+          800: '#290044',
+          900: '#1b002e',
         }
       }
     },

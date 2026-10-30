@@ -9,10 +9,9 @@ export function FacultyRecordAttendance() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Record sample attendance entry for student
     try {
       const res = await recordAttendanceApi({
-        studentId: '66fa1b1e9c2b3f1122334455', // Sample or dynamic student
+        studentId: '66fa1b1e9c2b3f1122334455',
         subjectId: '66fa1b1e9c2b3f1122334466',
         totalClasses: Number(total),
         attendedClasses: Number(attended),
@@ -29,21 +28,21 @@ export function FacultyRecordAttendance() {
 
   return (
     <div className="p-8 space-y-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-900">Faculty Attendance Entry</h1>
-      {msg && <div className="p-3 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl">{msg}</div>}
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+      <h1 className="text-2xl font-black text-[#290044]">Faculty Attendance Entry</h1>
+      {msg && <div className="p-3 bg-[#EEE3B0]/50 text-[#290044] border border-[#cbaf6a] text-xs font-bold rounded-xl">{msg}</div>}
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold mb-1">Total Classes Conducted</label>
-            <input type="number" value={total} onChange={e=>setTotal(e.target.value)} className="w-full p-2 border rounded-xl text-xs" />
+            <input type="number" value={total} onChange={e=>setTotal(e.target.value)} className="w-full p-2.5 border border-purple-200 rounded-xl text-xs outline-none focus:border-[#8A2A78]" />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1">Classes Attended</label>
-            <input type="number" value={attended} onChange={e=>setAttended(e.target.value)} className="w-full p-2 border rounded-xl text-xs" />
+            <input type="number" value={attended} onChange={e=>setAttended(e.target.value)} className="w-full p-2.5 border border-purple-200 rounded-xl text-xs outline-none focus:border-[#8A2A78]" />
           </div>
         </div>
-        <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl flex items-center gap-2">
-          <Save className="w-4 h-4" /> Save Attendance Entry
+        <button type="submit" className="px-5 py-2.5 bg-gradient-to-r from-[#500071] to-[#8A2A78] text-[#EEE3B0] font-bold text-xs rounded-xl flex items-center gap-2 shadow-md shadow-[#500071]/25 border border-[#EEE3B0]/30 hover:opacity-95">
+          <Save className="w-4 h-4 text-[#EEE3B0]" /> Save Attendance Entry
         </button>
       </form>
     </div>
@@ -62,21 +61,21 @@ export function FacultyEnterMarks() {
 
   return (
     <div className="p-8 space-y-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-900">Faculty Marks & Grade Entry</h1>
-      {msg && <div className="p-3 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl">{msg}</div>}
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+      <h1 className="text-2xl font-black text-[#290044]">Faculty Marks & Grade Entry</h1>
+      {msg && <div className="p-3 bg-[#EEE3B0]/50 text-[#290044] border border-[#cbaf6a] text-xs font-bold rounded-xl">{msg}</div>}
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold mb-1">Internal Marks (Max 30)</label>
-            <input type="number" value={internal} onChange={e=>setInternal(e.target.value)} className="w-full p-2 border rounded-xl text-xs" />
+            <input type="number" value={internal} onChange={e=>setInternal(e.target.value)} className="w-full p-2.5 border border-purple-200 rounded-xl text-xs outline-none focus:border-[#8A2A78]" />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1">End-Sem Marks (Max 70)</label>
-            <input type="number" value={endSem} onChange={e=>setEndSem(e.target.value)} className="w-full p-2 border rounded-xl text-xs" />
+            <input type="number" value={endSem} onChange={e=>setEndSem(e.target.value)} className="w-full p-2.5 border border-purple-200 rounded-xl text-xs outline-none focus:border-[#8A2A78]" />
           </div>
         </div>
-        <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl flex items-center gap-2">
-          <Save className="w-4 h-4" /> Submit Assessment Marks
+        <button type="submit" className="px-5 py-2.5 bg-gradient-to-r from-[#500071] to-[#8A2A78] text-[#EEE3B0] font-bold text-xs rounded-xl flex items-center gap-2 shadow-md shadow-[#500071]/25 border border-[#EEE3B0]/30 hover:opacity-95">
+          <Save className="w-4 h-4 text-[#EEE3B0]" /> Submit Assessment Marks
         </button>
       </form>
     </div>

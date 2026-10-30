@@ -27,7 +27,7 @@ export default function MyClubsPage() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#500071]"></div>
       </div>
     );
   }
@@ -38,30 +38,30 @@ export default function MyClubsPage() {
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">My Clubs Dashboard</h1>
+        <h1 className="text-2xl font-black text-[#290044]">My Clubs Dashboard</h1>
         <p className="text-xs text-slate-500 mt-1">Track your enrolled club memberships, application statuses, and upcoming events.</p>
       </div>
 
       {/* Memberships List */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-slate-900 text-base">Club Memberships</h2>
+      <div className="bg-white rounded-3xl border border-purple-100 shadow-sm p-6 space-y-4">
+        <h2 className="font-bold text-[#290044] text-base">Club Memberships</h2>
 
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-purple-50">
           {memberships.map((m) => (
             <div key={m._id} className="py-4 flex items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-slate-800 text-sm">{m.club?.name}</h3>
-                  <span className="text-[11px] font-semibold text-blue-600">({m.role})</span>
+                  <span className="text-[11px] font-bold text-[#8A2A78]">({m.role})</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">{m.club?.category}</p>
                 <p className="text-[11px] text-slate-400 mt-1">Applied: {new Date(m.createdAt).toLocaleDateString()}</p>
               </div>
 
               <div className="text-right">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase ${
                   m.status === 'active' 
-                    ? 'bg-emerald-100 text-emerald-800' 
+                    ? 'bg-[#EEE3B0] text-[#290044] border border-[#cbaf6a]' 
                     : m.status === 'pending'
                     ? 'bg-amber-100 text-amber-800'
                     : 'bg-rose-100 text-rose-800'

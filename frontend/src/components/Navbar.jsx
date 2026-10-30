@@ -10,10 +10,10 @@ export default function Navbar() {
   const [showNotifMenu, setShowNotifMenu] = useState(false);
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+    <header className="h-16 bg-white border-b border-purple-100/80 px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
       {/* Search Bar */}
-      <div className="flex items-center gap-2 bg-slate-100 px-3.5 py-2 rounded-xl text-slate-500 w-72 max-w-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:bg-white border border-transparent focus-within:border-blue-500 transition-all">
-        <Search className="w-4 h-4 text-slate-400 shrink-0" />
+      <div className="flex items-center gap-2 bg-slate-100/80 px-3.5 py-2 rounded-xl text-slate-500 w-72 max-w-sm focus-within:ring-2 focus-within:ring-[#500071]/20 focus-within:bg-white border border-transparent focus-within:border-[#8A2A78] transition-all">
+        <Search className="w-4 h-4 text-purple-400 shrink-0" />
         <input
           type="text"
           placeholder="Search subjects, Q&A, clubs..."
@@ -27,12 +27,12 @@ export default function Navbar() {
         <div className="relative">
           <button
             onClick={() => setShowNotifMenu(!showNotifMenu)}
-            className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-blue-600 transition-colors relative"
+            className="p-2 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-[#500071] transition-colors relative"
             title="Notifications"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#8A2A78] text-[#EEE3B0] text-[10px] font-bold flex items-center justify-center animate-pulse">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -40,23 +40,23 @@ export default function Navbar() {
 
           {/* Notifications Popover */}
           {showNotifMenu && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-purple-100 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="p-4 bg-gradient-to-r from-[#290044] to-[#500071] text-white flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-slate-800 text-sm">Notifications</h3>
-                  <p className="text-xs text-slate-500">{unreadCount} unread message(s)</p>
+                  <h3 className="font-semibold text-white text-sm">Notifications</h3>
+                  <p className="text-xs text-[#EEE3B0] font-medium">{unreadCount} unread message(s)</p>
                 </div>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-xs font-medium text-blue-600 hover:text-blue-700"
+                    className="text-xs font-semibold text-[#EEE3B0] hover:text-white underline"
                   >
                     Mark all read
                   </button>
                 )}
               </div>
 
-              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+              <div className="max-h-80 overflow-y-auto divide-y divide-purple-50">
                 {notifications.length === 0 ? (
                   <div className="p-6 text-center text-xs text-slate-400">No notifications found</div>
                 ) : (
@@ -64,15 +64,15 @@ export default function Navbar() {
                     <div
                       key={n._id}
                       onClick={() => markAsRead(n._id)}
-                      className={`p-3.5 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${
-                        !n.isRead ? 'bg-blue-50/40' : ''
+                      className={`p-3.5 hover:bg-purple-50/50 transition-colors cursor-pointer flex gap-3 ${
+                        !n.isRead ? 'bg-[#EEE3B0]/15' : ''
                       }`}
                     >
                       <div className="mt-0.5 shrink-0">
                         {n.type === 'ATTENDANCE_WARNING' && <AlertTriangle className="w-4 h-4 text-amber-500" />}
-                        {n.type === 'RESULT_PUBLISHED' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-                        {n.type === 'CLUB_UPDATE' && <BookOpen className="w-4 h-4 text-indigo-500" />}
-                        {n.type === 'ANNOUNCEMENT' && <Info className="w-4 h-4 text-blue-500" />}
+                        {n.type === 'RESULT_PUBLISHED' && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+                        {n.type === 'CLUB_UPDATE' && <BookOpen className="w-4 h-4 text-[#8A2A78]" />}
+                        {n.type === 'ANNOUNCEMENT' && <Info className="w-4 h-4 text-[#500071]" />}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
@@ -88,11 +88,11 @@ export default function Navbar() {
                 )}
               </div>
 
-              <div className="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
+              <div className="p-2.5 bg-slate-50 border-t border-purple-100 text-center">
                 <Link
                   to="/notifications"
                   onClick={() => setShowNotifMenu(false)}
-                  className="text-xs text-blue-600 font-medium hover:underline"
+                  className="text-xs text-[#500071] font-semibold hover:text-[#8A2A78]"
                 >
                   View notification history
                 </Link>
@@ -103,12 +103,12 @@ export default function Navbar() {
 
         {/* User Profile Header Badge */}
         <Link to="/profile" className="flex items-center gap-3 pl-2 border-l border-slate-200">
-          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs border border-blue-200">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#500071] to-[#8A2A78] text-[#EEE3B0] flex items-center justify-center font-bold text-xs shadow-sm">
             {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
           <div className="hidden sm:block text-left">
             <p className="text-xs font-semibold text-slate-800 leading-none">{user?.name}</p>
-            <p className="text-[10px] text-slate-500 mt-0.5 capitalize">{user?.role?.replace('_', ' ')}</p>
+            <p className="text-[10px] text-[#8A2A78] font-medium mt-0.5 capitalize">{user?.role?.replace('_', ' ')}</p>
           </div>
         </Link>
       </div>

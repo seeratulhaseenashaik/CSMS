@@ -76,25 +76,25 @@ export default function QaPage() {
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Achievers' Q&A Platform</h1>
+          <h1 className="text-2xl font-black text-[#290044]">Achievers' Q&A Platform</h1>
           <p className="text-xs text-slate-500 mt-1">Peer learning community to learn from high performers, seniors, and faculty.</p>
         </div>
 
         <button
           onClick={() => setShowAskModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center gap-2"
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#500071] to-[#8A2A78] hover:opacity-95 text-[#EEE3B0] font-bold text-xs shadow-md shadow-[#500071]/25 transition-all flex items-center gap-2 border border-[#EEE3B0]/30"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-[#EEE3B0]" />
           <span>Ask a Question</span>
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-3 border-b border-slate-200">
+      <div className="flex items-center gap-3 border-b border-purple-100">
         <button
           onClick={() => setActiveTab('all')}
           className={`pb-3 px-4 text-xs font-bold transition-colors border-b-2 ${
-            activeTab === 'all' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800'
+            activeTab === 'all' ? 'border-[#500071] text-[#500071]' : 'border-transparent text-slate-500 hover:text-[#290044]'
           }`}
         >
           All Discussions ({questions.length})
@@ -102,10 +102,10 @@ export default function QaPage() {
         <button
           onClick={() => setActiveTab('achievers')}
           className={`pb-3 px-4 text-xs font-bold transition-colors border-b-2 flex items-center gap-1.5 ${
-            activeTab === 'achievers' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800'
+            activeTab === 'achievers' ? 'border-[#500071] text-[#500071]' : 'border-transparent text-slate-500 hover:text-[#290044]'
           }`}
         >
-          <Award className="w-3.5 h-3.5" /> Verified Achiever Directory
+          <Award className="w-3.5 h-3.5 text-[#8A2A78]" /> Verified Achiever Directory
         </button>
       </div>
 
@@ -114,33 +114,33 @@ export default function QaPage() {
           {/* Question List */}
           <div className="space-y-4">
             {questions.map((q) => (
-              <div key={q._id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all">
+              <div key={q._id} className="bg-white rounded-2xl p-6 border border-purple-100 shadow-sm hover:shadow-md transition-all hover:border-[#8A2A78]/30">
                 <div className="flex items-start gap-4">
                   <button
                     onClick={() => handleVote(q._id, q.upvotesCount)}
-                    className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 shrink-0"
+                    className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-purple-50/60 hover:bg-[#500071] text-[#500071] hover:text-[#EEE3B0] border border-purple-200 shrink-0 transition-colors"
                   >
                     <ThumbsUp className="w-4 h-4" />
-                    <span className="text-xs font-bold mt-1">{q.upvotesCount}</span>
+                    <span className="text-xs font-extrabold mt-1">{q.upvotesCount}</span>
                   </button>
 
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#500071]/10 text-[#500071] border border-[#500071]/20">
                         {q.category}
                       </span>
                       {q.acceptedAnswer && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> Solved
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#EEE3B0] text-[#290044] border border-[#cbaf6a] flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-[#500071]" /> Solved
                         </span>
                       )}
                     </div>
 
-                    <Link to={`/qa/${q._id}`} className="font-bold text-slate-900 text-base mt-2 hover:text-blue-600 block">
+                    <Link to={`/qa/${q._id}`} className="font-bold text-[#290044] text-base mt-2 hover:text-[#8A2A78] block">
                       {q.title}
                     </Link>
 
-                    <p className="text-xs text-slate-600 mt-1 line-clamp-2">{q.description}</p>
+                    <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">{q.description}</p>
 
                     <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
                       <div className="flex items-center gap-2">
@@ -148,8 +148,8 @@ export default function QaPage() {
                         <span>•</span>
                         <span>{q.views} views</span>
                       </div>
-                      <Link to={`/qa/${q._id}`} className="font-semibold text-blue-600 flex items-center gap-1">
-                        <MessageSquare className="w-3.5 h-3.5" />
+                      <Link to={`/qa/${q._id}`} className="font-bold text-[#500071] hover:text-[#8A2A78] flex items-center gap-1">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#8A2A78]" />
                         <span>{q.answersCount} Answers</span>
                       </Link>
                     </div>
@@ -170,9 +170,9 @@ export default function QaPage() {
 
       {/* Ask Question Modal */}
       {showAskModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl p-6 shadow-2xl max-w-lg w-full border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Ask the Community & Achievers</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#290044]/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-6 shadow-2xl max-w-lg w-full border border-purple-100">
+            <h3 className="text-lg font-black text-[#290044] mb-4">Ask the Community & Achievers</h3>
             <form onSubmit={handleAskQuestion} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Question Title</label>
@@ -182,7 +182,7 @@ export default function QaPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. How to prepare for Data Structures & Algorithms?"
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-purple-200 text-sm outline-none focus:border-[#8A2A78]"
                 />
               </div>
 
@@ -191,7 +191,7 @@ export default function QaPage() {
                 <select
                   value={qCategory}
                   onChange={(e) => setQCategory(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-purple-200 text-sm outline-none focus:border-[#8A2A78]"
                 >
                   <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
                   <option value="Full Stack Web Dev">Full Stack Web Dev</option>
@@ -208,7 +208,7 @@ export default function QaPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Provide details about your question..."
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-purple-200 text-sm outline-none focus:border-[#8A2A78]"
                 ></textarea>
               </div>
 
@@ -216,13 +216,13 @@ export default function QaPage() {
                 <button
                   type="button"
                   onClick={() => setShowAskModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs"
+                  className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow-md shadow-blue-500/20"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#500071] to-[#8A2A78] text-[#EEE3B0] font-bold text-xs shadow-md shadow-[#500071]/25 border border-[#EEE3B0]/30"
                 >
                   Post Question
                 </button>

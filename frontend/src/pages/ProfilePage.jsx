@@ -33,23 +33,23 @@ export default function ProfilePage() {
   return (
     <div className="p-8 space-y-8 max-w-4xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">User Profile Settings</h1>
+        <h1 className="text-2xl font-black text-[#290044]">User Profile Settings</h1>
         <p className="text-xs text-slate-500 mt-1">Manage personal information and academic bio details.</p>
       </div>
 
-      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
-        <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
-          <div className="w-16 h-16 rounded-full bg-blue-600 text-white font-bold text-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+      <div className="bg-white rounded-3xl p-8 border border-purple-100 shadow-sm space-y-6">
+        <div className="flex items-center gap-4 border-b border-purple-50 pb-6">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#500071] to-[#8A2A78] text-[#EEE3B0] font-black text-2xl flex items-center justify-center shadow-lg shadow-[#500071]/25 border border-[#EEE3B0]/30">
             {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">{user?.name}</h2>
-            <p className="text-xs text-slate-500 capitalize">{user?.role?.replace('_', ' ')} • {user?.email}</p>
+            <h2 className="text-xl font-bold text-[#290044]">{user?.name}</h2>
+            <p className="text-xs text-[#8A2A78] font-semibold capitalize mt-0.5">{user?.role?.replace('_', ' ')} • {user?.email}</p>
           </div>
         </div>
 
         {msg && (
-          <div className="p-3.5 rounded-xl bg-blue-50 text-blue-800 text-xs font-semibold border border-blue-200">
+          <div className="p-3.5 rounded-xl bg-[#EEE3B0]/40 text-[#290044] text-xs font-bold border border-[#cbaf6a]/50">
             {msg}
           </div>
         )}
@@ -62,7 +62,7 @@ export default function ProfilePage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs outline-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-purple-200 text-xs outline-none focus:border-[#8A2A78]"
               />
             </div>
             <div>
@@ -71,7 +71,7 @@ export default function ProfilePage() {
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs outline-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-purple-200 text-xs outline-none focus:border-[#8A2A78]"
               />
             </div>
           </div>
@@ -82,16 +82,16 @@ export default function ProfilePage() {
               rows="3"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs outline-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-purple-200 text-xs outline-none focus:border-[#8A2A78]"
             ></textarea>
           </div>
 
           <button
             type="submit"
             disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#500071] to-[#8A2A78] hover:opacity-95 text-[#EEE3B0] font-bold text-xs shadow-md shadow-[#500071]/25 flex items-center gap-2 border border-[#EEE3B0]/30"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-4 h-4 text-[#EEE3B0]" />
             <span>{saving ? 'Saving...' : 'Save Profile Changes'}</span>
           </button>
         </form>
