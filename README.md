@@ -29,14 +29,6 @@ The database seed script provides test accounts with pre-configured roles:
 *(Tip: The login page includes quick **1-click demo login buttons** for instant sign-in without manual typing).*
 
 ---
-
-## 🧪 Running Automated Tests
-
-Run the backend unit and integration test suite:
-```bash
-cd backend
-npm test
-```
 **Test Coverage Includes:**
 - Zero classes conducted / attended edge cases.
 - 75% attendance threshold recovery formulas: $x = \lceil \frac{p \cdot T - A}{1 - p} \rceil$.
