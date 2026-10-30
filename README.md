@@ -4,24 +4,6 @@ A full-stack web application designed for higher education institutions. CSMS ce
 
 ---
 
-## 🚀 Quick Start: Opening in VS Code
-
-### Method 1: Using Terminal
-Run the following command directly from your terminal in the project directory:
-```bash
-code /Users/seeratulshaik/csms
-```
-or if you are already in the project directory:
-```bash
-code .
-```
-
-### Method 2: From VS Code UI
-1. Open **Visual Studio Code**.
-2. Press `Cmd + O` (or go to **File > Open Folder...**).
-3. Navigate to `/Users/seeratulshaik/csms` and click **Open**.
-
----
 
 ## 🏗️ System Architecture & Tech Stack
 
@@ -29,29 +11,6 @@ code .
 - **Backend**: Node.js, Express.js, JWT Authentication, RBAC Middleware, Mongoose.
 - **Database**: MongoDB with automatic In-Memory MongoDB fallback (`mongodb-memory-server`) for zero-configuration local runs.
 - **Automated Tests**: Jest test suite covering attendance algorithms, GPA formulas, and progression rules.
-
----
-
-## 🏃 Running the Application
-
-### 1. Start the Backend API (Port 5001)
-Open a terminal in VS Code (`Ctrl + ~` or ``Cmd + Shift + ` ``):
-```bash
-cd backend
-npm install
-npm run seed      # Populates realistic demo records, users, and courses
-npm start         # Starts server on http://localhost:5001
-```
-
-### 2. Start the Frontend Client (Port 3000)
-Open a second terminal split in VS Code:
-```bash
-cd frontend
-npm install
-npm run dev       # Starts Vite dev server on http://localhost:3000
-```
-
-Now open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ---
 
