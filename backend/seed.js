@@ -114,6 +114,7 @@ const seedData = async () => {
       department: 'CSE',
       designation: 'Associate Professor',
       officeHours: 'Mon/Wed/Fri 2:00 PM - 4:00 PM',
+      dateOfBirth: '1982-04-12',
     });
 
     console.log('[Seed] Creating Subjects...');
@@ -173,6 +174,11 @@ const seedData = async () => {
       faculty: facultyUser._id,
     });
 
+    await FacultyProfile.findOneAndUpdate(
+      { user: facultyUser._id },
+      { assignedSubjects: [dsaSubject._id, dbmsSubject._id, osSubject._id, webSubject._id] }
+    );
+
     const studentProfile = await StudentProfile.create({
       user: studentUser._id,
       registrationNumber: '2023CSE042',
@@ -186,6 +192,7 @@ const seedData = async () => {
       earnedCredits: 78,
       enrolledSubjects: [dsaSubject._id, dbmsSubject._id, osSubject._id, webSubject._id],
       isAchieverVerified: true,
+      dateOfBirth: '2004-05-15',
     });
 
     await StudentProfile.create({
@@ -201,6 +208,7 @@ const seedData = async () => {
       earnedCredits: 42,
       enrolledSubjects: [dsaSubject._id, dbmsSubject._id],
       isAchieverVerified: false,
+      dateOfBirth: '2005-08-20',
     });
 
     console.log('[Seed] Creating Attendance Records...');

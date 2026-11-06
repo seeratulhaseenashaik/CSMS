@@ -30,6 +30,10 @@ const facultyProfileSchema = new mongoose.Schema({
   officeHours: {
     type: String,
     default: 'Mon-Fri 2PM - 4PM',
+  },
+  dateOfBirth: {
+    type: String,
+    default: '1982-04-12',
   }
 }, { timestamps: true });
 

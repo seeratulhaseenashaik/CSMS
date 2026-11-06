@@ -14,7 +14,10 @@ import {
   Settings,
   LogOut,
   ClipboardList,
-  BookOpen
+  BookOpen,
+  Calendar,
+  BarChart3,
+  Megaphone
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -34,11 +37,18 @@ export default function Sidebar() {
   ];
 
   const facultyNav = [
-    { name: 'Faculty Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Record Attendance', path: '/faculty/attendance', icon: CalendarCheck },
-    { name: 'Enter Marks', path: '/faculty/marks', icon: ClipboardList },
-    { name: 'Achievers Q&A', path: '/qa', icon: HelpCircle },
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'My Profile', path: '/profile', icon: User },
+    { name: 'My Subjects & Classes', path: '/faculty/subjects', icon: BookOpen },
+    { name: 'Attendance Management', path: '/faculty/attendance', icon: CalendarCheck },
+    { name: 'Marks & Assessments', path: '/faculty/marks', icon: ClipboardList },
+    { name: 'My Students', path: '/faculty/students', icon: Users },
+    { name: 'Timetable', path: '/faculty/timetable', icon: Calendar },
+    { name: 'Reports & Analytics', path: '/faculty/reports', icon: BarChart3 },
+    { name: 'Announcements', path: '/faculty/announcements', icon: Megaphone },
+    { name: 'Notifications', path: '/notifications', icon: Bell },
+    { name: 'Settings', path: '/faculty/settings', icon: Settings },
+    { name: 'Logout', action: 'logout', icon: LogOut },
   ];
 
   const adminNav = [
@@ -81,6 +91,18 @@ export default function Sidebar() {
         <nav className="p-4 space-y-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
+            if (item.action === 'logout') {
+              return (
+                <button
+                  key={item.name}
+                  onClick={logout}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-purple-200/80 hover:text-[#EEE3B0] hover:bg-[#8A2A78]/30 transition-all duration-200 text-left"
+                >
+                  <Icon className="w-5 h-5 shrink-0 text-[#8A2A78]" />
+                  <span>{item.name}</span>
+                </button>
+              );
+            }
             return (
               <NavLink
                 key={item.path}

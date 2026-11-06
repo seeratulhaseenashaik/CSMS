@@ -20,7 +20,17 @@ import MyClubsPage from './pages/MyClubsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
 import { AdminUsers, AdminPromotionRules, AdminAnnouncements } from './pages/AdminPages';
-import { FacultyRecordAttendance, FacultyEnterMarks } from './pages/FacultyPages';
+import {
+  FacultyDashboard,
+  FacultyRecordAttendance,
+  FacultyEnterMarks,
+  FacultySubjects,
+  FacultyStudents,
+  FacultyTimetable,
+  FacultyReports,
+  FacultyAnnouncements,
+  FacultySettings,
+} from './pages/FacultyPages';
 
 function Layout() {
   return (
@@ -52,8 +62,15 @@ function Layout() {
 
             {/* Faculty Routes */}
             <Route element={<ProtectedRoute allowedRoles={['faculty', 'administrator']} />}>
+              <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+              <Route path="/faculty/subjects" element={<FacultySubjects />} />
               <Route path="/faculty/attendance" element={<FacultyRecordAttendance />} />
               <Route path="/faculty/marks" element={<FacultyEnterMarks />} />
+              <Route path="/faculty/students" element={<FacultyStudents />} />
+              <Route path="/faculty/timetable" element={<FacultyTimetable />} />
+              <Route path="/faculty/reports" element={<FacultyReports />} />
+              <Route path="/faculty/announcements" element={<FacultyAnnouncements />} />
+              <Route path="/faculty/settings" element={<FacultySettings />} />
             </Route>
           </Routes>
         </main>

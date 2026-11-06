@@ -29,10 +29,16 @@ export const AuthProvider = ({ children }) => {
     checkLoggedIn();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     setError(null);
     try {
-      const res = await loginApi({ email, password });
+      const res = await loginApi({
+        identifier,
+        email: identifier,
+        registrationNumber: identifier,
+        password,
+        dateOfBirth: password,
+      });
       if (res.data.success) {
         localStorage.setItem('csms_token', res.data.token);
         setUser(res.data.user);

@@ -10,6 +10,7 @@ const clubRoutes = require('./routes/clubRoutes');
 const qaRoutes = require('./routes/qaRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const facultyRoutes = require('./routes/facultyRoutes');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/clubs', clubRoutes);
 app.use('/api/qa', qaRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/faculty', facultyRoutes);
 
 // Error Handler Middleware
 app.use(errorHandler);

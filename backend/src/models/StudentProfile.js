@@ -57,6 +57,10 @@ const studentProfileSchema = new mongoose.Schema({
   isAchieverVerified: {
     type: Boolean,
     default: false,
+  },
+  dateOfBirth: {
+    type: String,
+    default: '2004-05-15',
   }
 }, { timestamps: true });
 

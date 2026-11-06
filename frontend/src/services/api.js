@@ -68,4 +68,19 @@ export const getNotificationsApi = () => API.get('/notifications');
 export const markNotificationReadApi = (id) => API.patch(`/notifications/${id}/read`);
 export const markAllNotificationsReadApi = () => API.patch('/notifications/read-all');
 
+// Faculty Services
+export const getFacultyDashboardApi = () => API.get('/faculty/dashboard');
+export const getFacultyProfileApi = () => API.get('/faculty/profile');
+export const updateFacultyProfileApi = (data) => API.put('/faculty/profile', data);
+export const getFacultySubjectsApi = () => API.get('/faculty/subjects');
+export const getFacultyStudentsApi = (params) => API.get('/faculty/students', { params });
+export const getFacultyAttendanceApi = (params) => API.get('/faculty/attendance', { params });
+export const recordBulkAttendanceApi = (data) => API.post('/faculty/attendance', data);
+export const getFacultyMarksApi = (params) => API.get('/faculty/marks', { params });
+export const saveBulkMarksApi = (data) => API.post('/faculty/marks', data);
+export const getFacultyTimetableApi = () => API.get('/faculty/timetable');
+export const getFacultyReportsApi = () => API.get('/faculty/reports');
+export const getFacultyAnnouncementsApi = () => API.get('/faculty/announcements');
+export const createFacultyAnnouncementApi = (data) => API.post('/faculty/announcements', data);
+
 export default API;

@@ -16,9 +16,15 @@ import {
   BookOpen
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import FacultyDashboard from './FacultyDashboard';
 
 export default function Dashboard() {
   const { user } = useAuth();
+
+  if (user?.role === 'faculty') {
+    return <FacultyDashboard />;
+  }
+
   const [attendance, setAttendance] = useState(null);
   const [results, setResults] = useState(null);
   const [memberships, setMemberships] = useState([]);
