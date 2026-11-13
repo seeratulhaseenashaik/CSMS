@@ -2,10 +2,15 @@ const Subject = require('../models/Subject');
 const StudentProfile = require('../models/StudentProfile');
 const FacultyProfile = require('../models/FacultyProfile');
 const AttendanceRecord = require('../models/AttendanceRecord');
+const AttendanceSession = require('../models/AttendanceSession');
 const SubjectResult = require('../models/SubjectResult');
 const Notification = require('../models/Notification');
 const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
+const InstitutionalSetting = require('../models/InstitutionalSetting');
+const Timetable = require('../models/Timetable');
+const CorrectionRequest = require('../models/CorrectionRequest');
+const AcademicTask = require('../models/AcademicTask');
 const {
   calculateAttendancePercentage,
   calculateClassesToReachTarget,
@@ -107,10 +112,44 @@ exports.getFacultyDashboard = async (req, res, next) => {
     // 4. Pending Tasks Calculation
     const pendingTasks = [];
 
+    // Check draft attendance sessions awaiting submission
+    const draftSessionsCount = await AttendanceSession.countDocuments({
+      faculty: facultyUserId,
+      status: 'Draft',
+    });
+    if (draftSessionsCount > 0) {
+      pendingTasks.push({
+        id: 'task-draft-attendance',
+        title: 'Draft Attendance Awaiting Submission',
+        description: `${draftSessionsCount} session(s) saved as draft. Finalize and submit attendance.`,
+        urgency: 'high',
+        category: 'Attendance',
+        count: draftSessionsCount,
+        link: '/faculty/attendance',
+      });
+    }
+
+    // Check student correction requests pending review
+    const pendingCorrectionsCount = await CorrectionRequest.countDocuments({
+      subject: { $in: subjectIds },
+      status: 'PENDING',
+    });
+    if (pendingCorrectionsCount > 0) {
+      pendingTasks.push({
+        id: 'task-corrections-pending',
+        title: 'Pending Student Correction Requests',
+        description: `${pendingCorrectionsCount} student discrepancy report(s) awaiting your review.`,
+        urgency: 'high',
+        category: 'Corrections',
+        count: pendingCorrectionsCount,
+        link: '/faculty/students',
+      });
+    }
+
     // Check incomplete marks entries (students enrolled in faculty's subjects without published results)
     const unpublishedResults = await SubjectResult.countDocuments({
       subject: { $in: subjectIds },
-      isPublished: false,
+      workflowStatus: { $in: ['Draft', 'Submitted'] },
     });
 
     if (unpublishedResults > 0) {
@@ -118,7 +157,7 @@ exports.getFacultyDashboard = async (req, res, next) => {
         id: 'task-marks-pending',
         title: 'Unpublished Assessment Marks',
         description: `${unpublishedResults} student assessment results are currently pending review or publication.`,
-        urgency: 'high',
+        urgency: 'medium',
         category: 'Marks',
         count: unpublishedResults,
         link: '/faculty/marks',
@@ -176,10 +215,29 @@ exports.getFacultyDashboard = async (req, res, next) => {
       });
     }
 
-    // 5. Weekly Schedule and Today's Schedule
-    const weeklySchedule = generateWeeklySchedule(subjects);
-    const currentDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
+    // 5. Weekly Schedule and Today's Schedule from Persisted Timetable
+    const persistedEntries = await Timetable.find({ faculty: facultyUserId, isActive: true })
+      .populate('subject', 'code name department semester subjectType')
+      .sort({ period: 1 });
 
+    let weeklySchedule = [];
+    if (persistedEntries.length > 0) {
+      weeklySchedule = persistedEntries.map((p) => ({
+        id: p._id.toString(),
+        day: p.day,
+        period: p.period,
+        startTime: p.startTime,
+        endTime: p.endTime,
+        subject: p.subject,
+        classSection: p.classAndSection,
+        room: p.classroom,
+        type: p.type,
+      }));
+    } else {
+      weeklySchedule = generateWeeklySchedule(subjects);
+    }
+
+    const currentDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
     const todayClasses = weeklySchedule.filter((s) => s.day === currentDayName);
 
     // Compute status (upcoming, in-progress, completed) based on time
@@ -613,12 +671,24 @@ exports.getFacultyAttendanceSession = async (req, res, next) => {
       new Set(recentRecords.map((r) => r.sessionDate.toISOString().split('T')[0]))
     );
 
+    // Fetch AttendanceSession details
+    const existingSession = await AttendanceSession.findOne({
+      subject: subjectId,
+      sessionDate: { $gte: startOfDay, $lte: endOfDay },
+    });
+
+    const recentSessions = await AttendanceSession.find({ subject: subjectId })
+      .sort({ sessionDate: -1, period: -1 })
+      .limit(15);
+
     res.json({
       success: true,
       data: {
         subject,
         subjects,
         selectedDate: sessionDate.toISOString().split('T')[0],
+        session: existingSession,
+        recentSessions,
         roster,
         stats: {
           totalEnrolled: roster.length,
@@ -641,7 +711,16 @@ exports.getFacultyAttendanceSession = async (req, res, next) => {
 exports.recordBulkAttendance = async (req, res, next) => {
   try {
     const facultyUserId = req.user.id;
-    const { subjectId, sessionDate, sessionType = 'Lecture', remarks = '', records } = req.body;
+    const {
+      subjectId,
+      sessionDate,
+      period = 1,
+      classAndSection = 'CSE-A',
+      sessionType = 'Lecture',
+      status: sessionStatus = 'Submitted',
+      remarks = '',
+      records,
+    } = req.body;
 
     if (!subjectId || !records || !Array.isArray(records) || records.length === 0) {
       return res.status(400).json({ success: false, message: 'Invalid payload: subjectId and records are required.' });
@@ -658,8 +737,43 @@ exports.recordBulkAttendance = async (req, res, next) => {
     }
 
     const targetDate = sessionDate ? new Date(sessionDate) : new Date();
-    // Normalize date to start of day for unique session matching
     targetDate.setHours(12, 0, 0, 0);
+
+    // Check if session exists and is locked
+    let session = await AttendanceSession.findOne({
+      subject: subjectId,
+      classAndSection,
+      sessionDate: targetDate,
+      period,
+    });
+
+    if (session && session.status === 'Finalized' && req.user.role !== 'administrator' && sessionStatus !== 'Corrected') {
+      return res.status(403).json({
+        success: false,
+        message: 'This attendance session has been finalized and locked. An administrator or approved correction request is required to modify finalized records.',
+      });
+    }
+
+    if (!session) {
+      session = new AttendanceSession({
+        subject: subjectId,
+        classAndSection,
+        academicYear: '2025-2026',
+        semester: subject.semester,
+        sessionDate: targetDate,
+        period,
+        sessionType,
+        faculty: facultyUserId,
+        status: sessionStatus,
+      });
+    } else {
+      session.status = sessionStatus;
+      session.sessionType = sessionType;
+      session.remarks = remarks;
+    }
+
+    if (sessionStatus === 'Submitted') session.submissionTimestamp = new Date();
+    if (sessionStatus === 'Finalized') session.finalizationTimestamp = new Date();
 
     let savedCount = 0;
     let presentCount = 0;
@@ -674,6 +788,7 @@ exports.recordBulkAttendance = async (req, res, next) => {
       const isExcused = status === 'excused';
       const attendedClasses = (isPresent || isExcused) ? 1 : 0;
       const approvedExemption = isExcused;
+      const statusLabel = isPresent ? 'Present' : (isExcused ? 'Excused' : 'Absent');
 
       if (isPresent) presentCount++;
       else if (isExcused) excusedCount++;
@@ -698,6 +813,8 @@ exports.recordBulkAttendance = async (req, res, next) => {
         record.faculty = facultyUserId;
         record.remarks = studentRemarks || remarks || record.remarks;
         record.approvedExemption = approvedExemption;
+        record.status = statusLabel;
+        record.attendanceSession = session._id;
         await record.save();
       } else {
         record = await AttendanceRecord.create({
@@ -710,6 +827,8 @@ exports.recordBulkAttendance = async (req, res, next) => {
           faculty: facultyUserId,
           remarks: studentRemarks || remarks,
           approvedExemption,
+          status: statusLabel,
+          attendanceSession: session._id,
         });
       }
 
@@ -726,33 +845,56 @@ exports.recordBulkAttendance = async (req, res, next) => {
       const pct = calculateAttendancePercentage(attendSoFar, totalSoFar);
 
       if (pct < 75 && totalSoFar >= 3) {
-        await Notification.create({
+        await Notification.createIfNotDuplicate({
           recipient: studentId,
           title: `Attendance Alert: ${subject.code}`,
           message: `Your attendance in ${subject.name} is currently ${pct}%, falling below the mandatory 75% requirement.`,
           type: 'ATTENDANCE_WARNING',
+          category: 'ATTENDANCE',
+          priority: 'HIGH',
           linkUrl: '/attendance',
         });
       }
     }
 
+    // Update and save session summary
+    session.summary = {
+      totalStudents: savedCount,
+      presentCount,
+      absentCount,
+      excusedCount,
+      attendancePercentage: savedCount > 0 ? Math.round(((presentCount + excusedCount) / savedCount) * 100) : 0,
+    };
+    session.auditTrail.push({
+      modifiedBy: facultyUserId,
+      modifiedAt: new Date(),
+      action: sessionStatus === 'Draft' ? 'SAVED_DRAFT' : 'SUBMITTED_ATTENDANCE',
+      remarks: remarks || `Session saved with ${savedCount} students.`,
+    });
+    await session.save();
+
     // Audit log
     await AuditLog.create({
       user: facultyUserId,
-      action: 'RECORD_BULK_ATTENDANCE',
-      targetEntity: 'AttendanceRecord',
-      details: `Logged attendance session for ${subject.code} on ${targetDate.toDateString()}: ${presentCount} Present, ${absentCount} Absent, ${excusedCount} Excused out of ${savedCount} students.`,
+      action: sessionStatus === 'Draft' ? 'SAVE_DRAFT_ATTENDANCE' : 'RECORD_BULK_ATTENDANCE',
+      targetEntity: 'AttendanceSession',
+      entityId: session._id,
+      details: `${sessionStatus === 'Draft' ? 'Saved draft' : 'Submitted'} attendance session for ${subject.code} on ${targetDate.toDateString()}: ${presentCount} Present, ${absentCount} Absent, ${excusedCount} Excused out of ${savedCount} students.`,
     });
 
     res.json({
       success: true,
-      message: `Attendance successfully submitted for ${savedCount} students.`,
+      message: sessionStatus === 'Draft'
+        ? `Draft attendance saved for ${savedCount} students.`
+        : `Attendance successfully submitted for ${savedCount} students.`,
+      session,
       summary: {
         total: savedCount,
         present: presentCount,
         absent: absentCount,
         excused: excusedCount,
         sessionDate: targetDate.toISOString().split('T')[0],
+        status: session.status,
       },
     });
   } catch (error) {
@@ -773,10 +915,21 @@ exports.getFacultyMarks = async (req, res, next) => {
       subjectId = subjects[0]._id.toString();
     }
 
+    const activeSetting = await InstitutionalSetting.getActiveSettings();
+
     if (!subjectId) {
       return res.json({
         success: true,
-        data: { subject: null, subjects, students: [] },
+        data: {
+          subject: null,
+          subjects,
+          students: [],
+          activeSetting: {
+            currentAcademicYear: activeSetting.academicYear,
+            currentSemester: activeSetting.currentSemester,
+            allowedSemesters: activeSetting.allowedSemesters || [1, 2, 3, 4, 5, 6, 7, 8],
+          },
+        },
       });
     }
 
@@ -786,7 +939,7 @@ exports.getFacultyMarks = async (req, res, next) => {
     }
 
     const subject = await Subject.findById(subjectId);
-    const semester = req.query.semester ? Number(req.query.semester) : subject.semester;
+    const semester = req.query.semester ? Number(req.query.semester) : (subject.semester || activeSetting.currentSemester);
 
     // Get enrolled students
     const studentProfiles = await StudentProfile.find({ enrolledSubjects: subjectId })
@@ -825,6 +978,10 @@ exports.getFacultyMarks = async (req, res, next) => {
         gradePoints: resItem ? resItem.gradePoints : 0,
         status: resItem ? resItem.status : 'PENDING',
         isPublished: resItem ? resItem.isPublished : false,
+        workflowStatus: resItem ? (resItem.workflowStatus || (resItem.isPublished ? 'Published' : 'Draft')) : 'Draft',
+        submissionTimestamp: resItem?.submissionTimestamp || null,
+        approvalTimestamp: resItem?.approvalTimestamp || null,
+        publishedTimestamp: resItem?.publishedTimestamp || null,
         resultId: resItem?._id || null,
       };
     });
@@ -836,9 +993,17 @@ exports.getFacultyMarks = async (req, res, next) => {
         subjects,
         semester,
         students,
+        activeSetting: {
+          currentAcademicYear: activeSetting.academicYear,
+          currentSemester: activeSetting.currentSemester,
+          allowedSemesters: activeSetting.allowedSemesters || [1, 2, 3, 4, 5, 6, 7, 8],
+        },
         stats: {
           totalEnrolled: students.length,
-          publishedCount: students.filter((s) => s.isPublished).length,
+          draftCount: students.filter((s) => s.workflowStatus === 'Draft').length,
+          submittedCount: students.filter((s) => s.workflowStatus === 'Submitted').length,
+          approvedCount: students.filter((s) => s.workflowStatus === 'Approved').length,
+          publishedCount: students.filter((s) => s.workflowStatus === 'Published' || s.isPublished).length,
           passedCount: students.filter((s) => s.status === 'PASS').length,
           failedCount: students.filter((s) => s.status === 'FAIL' || s.status === 'BACKLOG').length,
           pendingCount: students.filter((s) => s.status === 'PENDING').length,
@@ -856,7 +1021,14 @@ exports.getFacultyMarks = async (req, res, next) => {
 exports.saveBulkMarks = async (req, res, next) => {
   try {
     const facultyUserId = req.user.id;
-    const { subjectId, semester, academicYear = '2025-2026', isPublished = false, marksList } = req.body;
+    const {
+      subjectId,
+      semester,
+      academicYear = '2025-2026',
+      isPublished = false,
+      workflowStatus: reqWorkflowStatus,
+      marksList,
+    } = req.body;
 
     if (!subjectId || !marksList || !Array.isArray(marksList) || marksList.length === 0) {
       return res.status(400).json({ success: false, message: 'Invalid payload: subjectId and marksList are required.' });
@@ -871,6 +1043,14 @@ exports.saveBulkMarks = async (req, res, next) => {
     if (!subject) {
       return res.status(404).json({ success: false, message: 'Subject not found.' });
     }
+
+    // Determine target workflowStatus:
+    // If explicitly provided, respect it; otherwise if isPublished is true, 'Published', else 'Draft'
+    let targetWorkflowStatus = reqWorkflowStatus;
+    if (!targetWorkflowStatus) {
+      targetWorkflowStatus = isPublished ? 'Published' : 'Draft';
+    }
+    const isActuallyPublished = targetWorkflowStatus === 'Published';
 
     let savedCount = 0;
     const savedResults = [];
@@ -909,10 +1089,29 @@ exports.saveBulkMarks = async (req, res, next) => {
         record.grade = evaluation.grade;
         record.gradePoints = evaluation.gradePoints;
         record.status = evaluation.status;
-        if (isPublished) {
-          record.isPublished = true;
+        record.workflowStatus = targetWorkflowStatus;
+        record.isPublished = isActuallyPublished;
+
+        if (targetWorkflowStatus === 'Submitted') {
+          record.submissionTimestamp = new Date();
+          record.submittedBy = facultyUserId;
+        } else if (targetWorkflowStatus === 'Published') {
+          record.publishedTimestamp = new Date();
           record.publishedBy = facultyUserId;
         }
+
+        record.auditTrail = record.auditTrail || [];
+        record.auditTrail.push({
+          modifiedBy: facultyUserId,
+          modifiedAt: new Date(),
+          action: targetWorkflowStatus === 'Published'
+            ? 'PUBLISHED'
+            : targetWorkflowStatus === 'Submitted'
+            ? 'SUBMITTED_FOR_APPROVAL'
+            : 'DRAFT_SAVED',
+          remarks: `Marks ${targetWorkflowStatus.toLowerCase()} by faculty`,
+        });
+
         await record.save();
       } else {
         record = await SubjectResult.create({
@@ -929,8 +1128,24 @@ exports.saveBulkMarks = async (req, res, next) => {
           grade: evaluation.grade,
           gradePoints: evaluation.gradePoints,
           status: evaluation.status,
-          isPublished: Boolean(isPublished),
-          publishedBy: isPublished ? facultyUserId : null,
+          isPublished: isActuallyPublished,
+          workflowStatus: targetWorkflowStatus,
+          submittedBy: targetWorkflowStatus === 'Submitted' ? facultyUserId : null,
+          submissionTimestamp: targetWorkflowStatus === 'Submitted' ? new Date() : null,
+          publishedBy: isActuallyPublished ? facultyUserId : null,
+          publishedTimestamp: isActuallyPublished ? new Date() : null,
+          auditTrail: [
+            {
+              modifiedBy: facultyUserId,
+              modifiedAt: new Date(),
+              action: targetWorkflowStatus === 'Published'
+                ? 'PUBLISHED'
+                : targetWorkflowStatus === 'Submitted'
+                ? 'SUBMITTED_FOR_APPROVAL'
+                : 'DRAFT_SAVED',
+              remarks: `Initial record created with status ${targetWorkflowStatus}`,
+            },
+          ],
         });
       }
 
@@ -938,12 +1153,14 @@ exports.saveBulkMarks = async (req, res, next) => {
       savedResults.push(record);
 
       // If published, notify student
-      if (isPublished) {
-        await Notification.create({
+      if (isActuallyPublished) {
+        await Notification.createIfNotDuplicate({
           recipient: studentId,
           title: `Results Published: ${subject.code}`,
           message: `Your final assessment marks for ${subject.name} have been published. Grade: ${evaluation.grade} (${evaluation.status})`,
           type: 'RESULT_PUBLISHED',
+          category: 'ACADEMIC',
+          priority: 'NORMAL',
           linkUrl: '/results',
         });
       }
@@ -952,17 +1169,23 @@ exports.saveBulkMarks = async (req, res, next) => {
     // Audit log
     await AuditLog.create({
       user: facultyUserId,
-      action: isPublished ? 'PUBLISH_MARKS' : 'DRAFT_MARKS',
+      action: targetWorkflowStatus === 'Published' ? 'PUBLISH_MARKS' : (targetWorkflowStatus === 'Submitted' ? 'SUBMIT_MARKS' : 'DRAFT_MARKS'),
       targetEntity: 'SubjectResult',
-      details: `${isPublished ? 'Published' : 'Saved draft'} marks for ${savedCount} students in ${subject.code} (${subject.name}).`,
+      details: `${targetWorkflowStatus} assessment marks for ${savedCount} students in ${subject.code} (${subject.name}).`,
     });
+
+    let userMessage = `Assessment marks saved as draft for ${savedCount} students.`;
+    if (targetWorkflowStatus === 'Submitted') {
+      userMessage = `Assessment marks successfully submitted for administrative approval for ${savedCount} students.`;
+    } else if (targetWorkflowStatus === 'Published') {
+      userMessage = `Marks finalized and published for ${savedCount} students!`;
+    }
 
     res.json({
       success: true,
-      message: isPublished
-        ? `Marks finalized and published for ${savedCount} students!`
-        : `Assessment marks saved as draft for ${savedCount} students.`,
+      message: userMessage,
       savedCount,
+      workflowStatus: targetWorkflowStatus,
     });
   } catch (error) {
     next(error);
@@ -977,15 +1200,49 @@ exports.getFacultyTimetable = async (req, res, next) => {
     const facultyUserId = req.user.id;
     const { subjects } = await getAssignedSubjectIds(facultyUserId);
 
-    const weeklySchedule = generateWeeklySchedule(subjects);
+    // Fetch persisted timetable entries
+    const persistedEntries = await Timetable.find({ faculty: facultyUserId, isActive: true })
+      .populate('subject', 'code name department semester subjectType')
+      .sort({ day: 1, period: 1 });
 
-    const academicCalendar = [
-      { date: '2026-11-15', event: 'Mid-Semester Examinations Commencement', type: 'Exam' },
-      { date: '2026-11-25', event: 'Internal Assessment Submission Deadline', type: 'Academic' },
-      { date: '2026-12-05', event: 'End-Semester Practical Evaluations', type: 'Practical' },
-      { date: '2026-12-15', event: 'Final Theory Examinations Begin', type: 'Exam' },
-      { date: '2026-12-28', event: 'Winter Recess Begins', type: 'Holiday' },
-    ];
+    let weeklySchedule = [];
+    if (persistedEntries.length > 0) {
+      weeklySchedule = persistedEntries.map((p) => ({
+        id: p._id.toString(),
+        day: p.day,
+        period: p.period,
+        startTime: p.startTime,
+        endTime: p.endTime,
+        subject: p.subject,
+        classSection: p.classAndSection,
+        room: p.classroom,
+        type: p.type,
+      }));
+    } else {
+      weeklySchedule = generateWeeklySchedule(subjects);
+    }
+
+    // Fetch dynamic academic calendar events/tasks
+    const tasks = await AcademicTask.find({
+      $or: [{ targetRole: 'faculty' }, { targetRole: 'all' }],
+      isActive: true,
+    }).sort({ dueDate: 1 }).limit(10);
+
+    const academicCalendar = tasks.length > 0
+      ? tasks.map((t) => ({
+          date: t.dueDate.toISOString().split('T')[0],
+          event: t.title,
+          type: t.category,
+          priority: t.priority,
+          status: t.status,
+        }))
+      : [
+          { date: '2026-11-15', event: 'Mid-Semester Examinations Commencement', type: 'Exam' },
+          { date: '2026-11-25', event: 'Internal Assessment Submission Deadline', type: 'Academic' },
+          { date: '2026-12-05', event: 'End-Semester Practical Evaluations', type: 'Practical' },
+          { date: '2026-12-15', event: 'Final Theory Examinations Begin', type: 'Exam' },
+          { date: '2026-12-28', event: 'Winter Recess Begins', type: 'Holiday' },
+        ];
 
     res.json({
       success: true,

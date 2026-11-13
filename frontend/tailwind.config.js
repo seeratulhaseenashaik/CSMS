@@ -13,6 +13,17 @@ export default {
           magenta: '#8A2A78', // 8A2A78 - Magenta Orchid / Rose
           cream: '#EEE3B0',   // EEE3B0 - Warm Champagne Gold / Cream
         },
+        emeraldTheme: {
+          bgPrimary: '#090D0B',       // Near black
+          bgSecondary: '#141C17',     // Dark charcoal green
+          surface: '#17231D',         // Deep forest charcoal
+          accent: '#53B879',          // Emerald green
+          accentMint: '#A4F5AE',      // Soft neon mint
+          textPrimary: '#F4F6F0',     // Warm off-white
+          textSecondary: '#A1B4A6',   // Muted sage gray
+          border: '#42614B',          // Translucent sage
+          inputBg: '#101A14',         // Dark green-black
+        },
         brand: {
           50: '#fbf9f2',
           100: '#EEE3B0',

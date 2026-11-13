@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-emerald-bg-primary: #090D0B;
+  --color-emerald-bg-secondary: #141C17;
+  --color-emerald-surface: #17231D;
+  --color-emerald-accent: #53B879;
+  --color-emerald-mint: #A4F5AE;
+  --color-emerald-text-primary: #F4F6F0;
+  --color-emerald-text-secondary: #A1B4A6;
+  --color-emerald-border: #42614B;
+  --color-emerald-input-bg: #101A14;
+}
+
 @layer base {
   body {
     @apply bg-slate-50 text-slate-800 antialiased;

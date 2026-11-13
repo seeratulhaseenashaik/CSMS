@@ -15,9 +15,18 @@ const { calculateAttendancePercentage } = require('../utils/attendanceCalculator
 exports.getMyResults = async (req, res, next) => {
   try {
     const studentId = req.user.id;
+    const isStaff = req.user.role === 'administrator';
 
     const profile = await StudentProfile.findOne({ user: studentId });
-    const results = await SubjectResult.find({ student: studentId })
+    const queryFilter = { student: studentId };
+    if (!isStaff) {
+      queryFilter.$or = [
+        { workflowStatus: 'Published' },
+        { isPublished: true, workflowStatus: { $ne: 'Draft' } },
+      ];
+    }
+
+    const results = await SubjectResult.find(queryFilter)
       .populate('subject', 'code name department credits semester subjectType maxMarks minPassingMarks internalMinPassingMarks endSemMinPassingMarks')
       .sort({ semester: 1 });
 
@@ -234,6 +243,174 @@ exports.getProgressionEligibility = async (req, res, next) => {
         earnedCredits: studentProfile.earnedCredits,
       },
       evaluation,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Get pending marks submissions awaiting approval or publication
+// @route GET /api/results/pending-approvals
+// @access Private (Admin / Academic Staff)
+exports.getPendingMarksApprovals = async (req, res, next) => {
+  try {
+    const { status = 'Submitted' } = req.query;
+
+    const results = await SubjectResult.find({ workflowStatus: status })
+      .populate('subject', 'code name department semester credits')
+      .populate('student', 'name email')
+      .populate('submittedBy', 'name email')
+      .sort({ updatedAt: -1 });
+
+    // Group by subject and semester
+    const grouped = {};
+    for (const r of results) {
+      if (!r.subject) continue;
+      const key = `${r.subject._id.toString()}_${r.semester}_${r.academicYear}`;
+      if (!grouped[key]) {
+        grouped[key] = {
+          subject: r.subject,
+          semester: r.semester,
+          academicYear: r.academicYear,
+          workflowStatus: r.workflowStatus,
+          submittedBy: r.submittedBy,
+          submittedAt: r.submittedAt,
+          records: [],
+        };
+      }
+      grouped[key].records.push(r);
+    }
+
+    res.json({
+      success: true,
+      count: Object.keys(grouped).length,
+      submissions: Object.values(grouped),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Approve marks submitted by faculty
+// @route POST /api/results/approve
+// @access Private (Admin / Designated Academic Staff)
+exports.approveMarks = async (req, res, next) => {
+  try {
+    const { subjectId, semester, academicYear, approvalNotes = '' } = req.body;
+
+    if (!subjectId) {
+      return res.status(400).json({ success: false, message: 'subjectId is required.' });
+    }
+
+    const filter = {
+      subject: subjectId,
+      workflowStatus: 'Submitted',
+    };
+    if (semester) filter.semester = semester;
+    if (academicYear) filter.academicYear = academicYear;
+
+    const results = await SubjectResult.find(filter);
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: 'No submitted marks pending approval for this subject.' });
+    }
+
+    const updated = await SubjectResult.updateMany(filter, {
+      $set: {
+        workflowStatus: 'Approved',
+        approvedBy: req.user.id,
+        approvedAt: new Date(),
+        approvalNotes,
+      },
+      $push: {
+        auditTrail: {
+          modifiedBy: req.user.id,
+          modifiedAt: new Date(),
+          action: 'APPROVED_MARKS',
+          remarks: approvalNotes || 'Approved by academic staff',
+        },
+      },
+    });
+
+    const subject = await Subject.findById(subjectId);
+    await AuditLog.create({
+      user: req.user.id,
+      action: 'APPROVE_MARKS',
+      targetEntity: 'SubjectResult',
+      entityId: subjectId,
+      details: `Approved marks for ${results.length} students in ${subject?.code || subjectId}.`,
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully approved marks for ${results.length} students.`,
+      approvedCount: results.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Publish approved marks (making them visible to students)
+// @route POST /api/results/publish
+// @access Private (Admin)
+exports.publishMarks = async (req, res, next) => {
+  try {
+    const { subjectId, semester, academicYear } = req.body;
+
+    if (!subjectId) {
+      return res.status(400).json({ success: false, message: 'subjectId is required.' });
+    }
+
+    const filter = {
+      subject: subjectId,
+      workflowStatus: { $in: ['Approved', 'Submitted'] },
+    };
+    if (semester) filter.semester = semester;
+    if (academicYear) filter.academicYear = academicYear;
+
+    const results = await SubjectResult.find(filter).populate('subject', 'code name');
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: 'No approved marks available for publication.' });
+    }
+
+    for (const r of results) {
+      r.workflowStatus = 'Published';
+      r.isPublished = true;
+      r.publishedBy = req.user.id;
+      r.publishedAt = new Date();
+      r.auditTrail.push({
+        modifiedBy: req.user.id,
+        modifiedAt: new Date(),
+        action: 'PUBLISHED_MARKS',
+        remarks: 'Official publication by administrator',
+      });
+      await r.save();
+
+      // Notify student
+      await Notification.createIfNotDuplicate({
+        recipient: r.student,
+        title: `Official Result Published: ${r.subject?.code}`,
+        message: `Your final marks and grade for ${r.subject?.name} (${r.subject?.code}) are now published. Grade: ${r.grade}`,
+        type: 'RESULT_PUBLISHED',
+        category: 'MARKS',
+        priority: 'HIGH',
+        linkUrl: '/results',
+      });
+    }
+
+    const subject = results[0]?.subject;
+    await AuditLog.create({
+      user: req.user.id,
+      action: 'PUBLISH_MARKS',
+      targetEntity: 'SubjectResult',
+      entityId: subjectId,
+      details: `Published official marks for ${results.length} students in ${subject?.code || subjectId}.`,
+    });
+
+    res.json({
+      success: true,
+      message: `Published results for ${results.length} students.`,
+      publishedCount: results.length,
     });
   } catch (error) {
     next(error);

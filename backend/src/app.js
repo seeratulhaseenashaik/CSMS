@@ -5,7 +5,7 @@ const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const resultRoutes = require('./routes/resultRoutes');
-const progressionRoutes = require('./routes/progressionRoutes');
+const academicRoutes = require('./routes/academicRoutes');
 const clubRoutes = require('./routes/clubRoutes');
 const qaRoutes = require('./routes/qaRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -35,7 +35,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/results', resultRoutes);
-app.use('/api/academic', progressionRoutes);
+app.use('/api/academic', academicRoutes);
 app.use('/api/clubs', clubRoutes);
 app.use('/api/qa', qaRoutes);
 app.use('/api/admin', adminRoutes);

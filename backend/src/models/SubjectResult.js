@@ -61,12 +61,55 @@ const subjectResultSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  workflowStatus: {
+    type: String,
+    enum: ['Draft', 'Submitted', 'Approved', 'Published'],
+    default: 'Draft',
+  },
+  submittedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  submittedAt: Date,
+  approvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  approvedAt: Date,
   publishedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-  }
+  },
+  publishedAt: Date,
+  approvalNotes: {
+    type: String,
+    default: '',
+  },
+  correctionNotes: {
+    type: String,
+    default: '',
+  },
+  auditTrail: [{
+    modifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    modifiedAt: { type: Date, default: Date.now },
+    action: { type: String, required: true },
+    remarks: String,
+  }],
 }, { timestamps: true });
 
+// Sync workflowStatus and isPublished for backwards compatibility
+subjectResultSchema.pre('save', function (next) {
+  if (this.workflowStatus === 'Published') {
+    this.isPublished = true;
+  } else if (this.isModified('workflowStatus')) {
+    this.isPublished = false;
+  } else if (this.isPublished && this.workflowStatus === 'Draft') {
+    this.workflowStatus = 'Published';
+  }
+  next();
+});
+
 subjectResultSchema.index({ student: 1, subject: 1, semester: 1 }, { unique: true });
+subjectResultSchema.index({ workflowStatus: 1, subject: 1, semester: 1 });
 
 module.exports = mongoose.model('SubjectResult', subjectResultSchema);

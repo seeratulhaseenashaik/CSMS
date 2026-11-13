@@ -54,19 +54,19 @@ export const acceptAnswerApi = (answerId) => API.patch(`/qa/answers/${answerId}/
 export const getAchieversApi = () => API.get('/qa/achievers');
 export const verifyAchieverApi = (data) => API.post('/qa/achievers/verify', data);
 
-// Admin Services
-export const getAdminDashboardApi = () => API.get('/admin/dashboard');
-export const getUsersApi = (params) => API.get('/admin/users', { params });
-export const createDepartmentApi = (data) => API.post('/admin/departments', data);
-export const createSubjectApi = (data) => API.post('/admin/subjects', data);
-export const createPromotionRuleApi = (data) => API.post('/admin/promotion-rules', data);
-export const getPromotionRulesApi = () => API.get('/admin/promotion-rules');
-export const publishAnnouncementApi = (data) => API.post('/admin/announcements', data);
+// Academic & Timetable & Correction Services
+export const getAcademicSettingsApi = () => API.get('/academic/settings');
+export const getAcademicTimetableApi = (params) => API.get('/academic/timetable', { params });
+export const getCorrectionRequestsApi = (params) => API.get('/academic/corrections', { params });
+export const createCorrectionRequestApi = (data) => API.post('/academic/corrections', data);
+export const reviewCorrectionRequestApi = (id, data) => API.patch(`/academic/corrections/${id}`, data);
+export const getAcademicTasksApi = (params) => API.get('/academic/tasks', { params });
+export const updateTaskStatusApi = (id, status) => API.patch(`/academic/tasks/${id}`, { status });
 
-// Notification Services
-export const getNotificationsApi = () => API.get('/notifications');
-export const markNotificationReadApi = (id) => API.patch(`/notifications/${id}/read`);
-export const markAllNotificationsReadApi = () => API.patch('/notifications/read-all');
+// Result Workflow & Approvals
+export const getPendingMarksApprovalsApi = (params) => API.get('/results/pending-approvals', { params });
+export const approveMarksApi = (data) => API.post('/results/approve', data);
+export const publishMarksApi = (data) => API.post('/results/publish', data);
 
 // Faculty Services
 export const getFacultyDashboardApi = () => API.get('/faculty/dashboard');
@@ -82,5 +82,29 @@ export const getFacultyTimetableApi = () => API.get('/faculty/timetable');
 export const getFacultyReportsApi = () => API.get('/faculty/reports');
 export const getFacultyAnnouncementsApi = () => API.get('/faculty/announcements');
 export const createFacultyAnnouncementApi = (data) => API.post('/faculty/announcements', data);
+
+// Admin Services
+export const getAdminDashboardApi = () => API.get('/admin/dashboard');
+export const getUsersApi = (params) => API.get('/admin/users', { params });
+export const getAdminSubjectsApi = (params) => API.get('/admin/subjects', { params });
+export const createSubjectApi = (data) => API.post('/admin/subjects', data);
+export const updateSubjectApi = (id, data) => API.put(`/admin/subjects/${id}`, data);
+export const deleteSubjectApi = (id) => API.delete(`/admin/subjects/${id}`);
+export const getAdminDepartmentsApi = () => API.get('/admin/departments');
+export const createDepartmentApi = (data) => API.post('/admin/departments', data);
+export const getAdminSettingsApi = () => API.get('/admin/settings');
+export const updateAdminSettingsApi = (data) => API.put('/admin/settings', data);
+export const getAdminTimetableApi = (params) => API.get('/admin/timetable', { params });
+export const createTimetableEntryApi = (data) => API.post('/admin/timetable', data);
+export const deleteTimetableEntryApi = (id) => API.delete(`/admin/timetable/${id}`);
+export const getAdminAuditLogsApi = (params) => API.get('/admin/audit-logs', { params });
+export const createPromotionRuleApi = (data) => API.post('/admin/promotion-rules', data);
+export const getPromotionRulesApi = () => API.get('/admin/promotion-rules');
+export const publishAnnouncementApi = (data) => API.post('/admin/announcements', data);
+
+// Notification Services
+export const getNotificationsApi = () => API.get('/notifications');
+export const markNotificationReadApi = (id) => API.patch(`/notifications/${id}/read`);
+export const markAllNotificationsReadApi = () => API.patch('/notifications/read-all');
 
 export default API;

@@ -43,9 +43,19 @@ const attendanceRecordSchema = new mongoose.Schema({
     default: '',
   },
   remarks: String,
+  attendanceSession: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AttendanceSession',
+  },
+  status: {
+    type: String,
+    enum: ['Present', 'Absent', 'Excused', 'Late'],
+    default: 'Present',
+  },
 }, { timestamps: true });
 
 // Ensure unique index per student, subject, and session date
 attendanceRecordSchema.index({ student: 1, subject: 1, sessionDate: 1 }, { unique: true });
+attendanceRecordSchema.index({ attendanceSession: 1, student: 1 });
 
 module.exports = mongoose.model('AttendanceRecord', attendanceRecordSchema);
